@@ -21,4 +21,15 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  server: {
+    host: true,  // needed for docker
+    port: 5173,
+    watch: {
+      usePolling: true,  // needed for Docker volumes
+    },
+    hmr: {
+      port: 5173,
+      host: '0.0.0.0'
+    }
+  }
 });

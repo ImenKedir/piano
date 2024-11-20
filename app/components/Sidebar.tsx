@@ -116,6 +116,7 @@ export function Sidebar({ filters, onFilterChange, locations }: SidebarProps) {
           onFilterChange('location', null);
           onFilterChange('priceRange', null);
           onFilterChange('yearRange', null);
+          onFilterChange('search', null);
         }}
         className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 shadow-sm hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
       >

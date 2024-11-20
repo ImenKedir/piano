@@ -1,5 +1,4 @@
 import { Link, useLocation } from '@remix-run/react';
-import { motion } from 'framer-motion';
 
 import { ThemeToggle } from '~/components/theme-toggle';
 

@@ -1,11 +1,11 @@
 services:
   web:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5173:5173" # vite dev server uses this port
-      - "3000:3000"
+      - '5173:5173' # vite dev server uses this port
+      - '3000:3000'
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules

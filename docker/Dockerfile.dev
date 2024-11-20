@@ -1,14 +1,17 @@
-# Use the official Bun image
-FROM oven/bun:1
+# Use Node.js LTS (Latest LTS version)
+FROM node:20-slim
 
 # Set the working directory
 WORKDIR /usr/src/app
 
-# Copy package.json and bun.lockb
-COPY package.json bun.lockb ./
+# Copy package files
+COPY package.json ./
 
-# Install dependencies
-RUN bun install
+# Generate a fresh package-lock.json first
+RUN npm install --package-lock-only
+
+# Now run the clean install
+RUN npm clean-install
 
 # Don't copy source code here - will be mounted via volume
 
@@ -16,6 +19,6 @@ RUN bun install
 EXPOSE 5173
 
 # Start the development server
-CMD ["bun", "run", "dev"]
+CMD ["npm", "run", "dev"]
 
   

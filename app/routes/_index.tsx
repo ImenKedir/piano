@@ -1,65 +1,126 @@
-import type { MetaFunction } from '@remix-run/node';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useMemo, useState } from 'react';
 
-import { useTheme } from '~/hooks/useTheme';
+import { Sidebar } from '~/components/Sidebar';
+import { Header } from '~/components/header';
+import { PianoCard } from '~/components/piano-card';
+import { pianos } from '~/data/piano';
 
-export const meta: MetaFunction = () => {
-  return [
-    { title: 'New Remix App' },
-    { name: 'description', content: 'Welcome to Remix!' },
-  ];
-};
+export interface FilterState {
+  condition: string | null;
+  location: string | null;
+  priceRange: number[] | null;
+  yearRange: number[] | null;
+}
 
 export default function Index() {
-  const { theme, toggleTheme } = useTheme();
+  const [filters, setFilters] = useState<FilterState>({
+    condition: null,
+    location: null,
+    priceRange: null,
+    yearRange: null,
+  });
+
+  const locations = useMemo(
+    () => Array.from(new Set(pianos.map((piano) => piano.location))).sort(),
+    []
+  );
+
+  const handleFilterChange = (
+    key: keyof FilterState,
+    value: string | number[] | null
+  ) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value === 'all' ? null : value,
+    }));
+  };
+
+  const filteredPianos = useMemo(() => {
+    return pianos.filter((piano) => {
+      if (filters.condition && piano.condition !== filters.condition) {
+        return false;
+      }
+
+      if (filters.location && piano.location !== filters.location) {
+        return false;
+      }
+
+      if (filters.priceRange) {
+        const [min, max] = filters.priceRange;
+        if (piano.price < min || piano.price > max) {
+          return false;
+        }
+      }
+
+      if (filters.yearRange) {
+        const [min, max] = filters.yearRange;
+        if (piano.year < min || piano.year > max) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [filters]);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-    <header className="bg-white shadow-sm">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Piano Marketplace</h1>
-        <div className="flex gap-4">
-          <Link to="/pianos" className="text-gray-600 hover:text-gray-900">Browse Pianos</Link>
-          <Link to="/sell" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
-            Sell a Piano
-          </Link>
-        </div>
-      </nav>
-    </header>
+    <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-white">
+      <Header />
 
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="text-center">
-        <h2 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
-          Find Your Perfect Piano
-        </h2>
-        <p className="mt-4 text-xl text-gray-500">
-          Browse our collection of quality second-hand pianos
-        </p>
-      </div>
+      <main className="container mx-auto px-4 pb-16 pt-24">
+        <h1 className="mb-8 text-3xl font-bold">Browse</h1>
 
-      <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Featured Categories */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold">Grand Pianos</h3>
-          <p className="mt-2 text-gray-600">Discover premium grand pianos</p>
-          <Link to="/pianos/grand" className="mt-4 inline-block text-indigo-600 hover:text-indigo-800">
-            Browse →
-          </Link>
+        <div className="flex gap-8">
+          <Sidebar
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            locations={locations}
+          />
+
+          <div className="flex-1">
+            <motion.div
+              layout
+              className="grid grid-cols-2 gap-6 md:grid-cols-3"
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+            >
+              <AnimatePresence mode="popLayout">
+                {filteredPianos.map((piano, index) => (
+                  <motion.div
+                    key={piano.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{
+                      layout: { duration: 0.3 },
+                      opacity: { duration: 0.2 },
+                      scale: { duration: 0.2 },
+                    }}
+                  >
+                    <PianoCard
+                      piano={piano}
+                      size={index === 0 ? 'large' : 'small'}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+
+            {filteredPianos.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="py-12 text-center"
+              >
+                <p className="text-gray-600 dark:text-gray-400">
+                  No pianos found matching your filters.
+                </p>
+              </motion.div>
+            )}
+          </div>
         </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold">Upright Pianos</h3>
-          <p className="mt-2 text-gray-600">Perfect for homes and studios</p>
-          <Link to="/pianos/upright" className="mt-4 inline-block text-indigo-600 hover:text-indigo-800">
-            Browse →
-          </Link>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold">Digital Pianos</h3>
-          <p className="mt-2 text-gray-600">Modern digital alternatives</p>
-          <Link to="/pianos/digital" className="mt-4 inline-block text-indigo-600 hover:text-indigo-800">
-            Browse →
-          </Link>
-        </div>
-      </div>
-    </main>
-  </div>
+      </main>
+    </div>
   );
 }
